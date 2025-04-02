@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 export default function AiAssistant() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [listening, setListening] = useState(false);
+  const [chatSummary, setChatSummary] = useState('');
+  const [sentiment, setSentiment] = useState<'positive' | 'neutral' | 'negative'>('neutral');
+  const [actionItems, setActionItems] = useState<string[]>([]);
   
   const handleVoiceCommand = () => {
     if ('webkitSpeechRecognition' in window) {

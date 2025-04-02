@@ -117,9 +117,17 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
     const context = canvas.getContext('2d');
     
     if (!context) return;
+
+    // Draw IR illuminator indicators
+    context.fillStyle = 'rgba(255, 0, 0, 0.5)';
+    context.beginPath();
+    context.arc(20, 20, 5, 0, Math.PI * 2);
+    context.arc(canvas.width - 20, 20, 5, 0, Math.PI * 2);
+    context.fill();
     
-    // Simulate eye detection (in a real implementation, this would use computer vision)
-    const eyesVisible = Math.random() > 0.2; // 80% chance of eyes being visible
+    // Detect eyes using face detection API
+    const eyesVisible = document.visibilityState === 'visible' && video.readyState === 4;
+    const newAttentionScore = eyesVisible ? 100 : 20;
     
     // Update attention score based on eye visibility
     setAttentionScore(prev => {

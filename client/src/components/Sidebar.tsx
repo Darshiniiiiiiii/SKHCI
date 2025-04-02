@@ -97,7 +97,9 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                   >
                     <div className="relative">
                       <i className="fas fa-comments text-lg"></i>
-                      <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs">3</span>
+                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs animate-pulse cursor-pointer hover:bg-red-600 transition-colors">
+                        <span className="text-white">3</span>
+                      </div>
                     </div>
                     {expanded && <span className="ml-3">Chats</span>}
                   </button>
