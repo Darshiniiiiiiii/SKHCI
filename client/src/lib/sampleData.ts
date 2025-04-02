@@ -4,13 +4,13 @@ import { Message, ChatRoom, Meeting, Room, Notification, User } from './types';
 export const users: Record<string, User> = {
   user1: {
     id: 'user1',
-    name: 'Alex Johnson',
-    avatar: 'A',
+    name: 'Darshini',
+    avatar: 'D',
   },
   user2: {
     id: 'user2',
-    name: 'Sam Smith',
-    avatar: 'S',
+    name: 'Gowtham',
+    avatar: 'G',
   }
 };
 
@@ -100,7 +100,7 @@ export const defaultNotifications: Notification[] = [
     type: 'mention',
     read: false,
     relatedId: 'group-1',
-    tags: ['@Alex', 'urgent'],
+    tags: ['@Darshini', 'urgent'],
   },
   {
     id: 'notif-2',

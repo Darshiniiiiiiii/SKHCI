@@ -1,17 +1,47 @@
 import { useState } from 'react';
 import { ActiveSection } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 interface SidebarProps {
   onSectionChange: (section: ActiveSection) => void;
   activeSection: ActiveSection;
+  userPresenceStatus?: 'present' | 'away' | 'fake-presence';
 }
 
-export default function Sidebar({ onSectionChange, activeSection }: SidebarProps) {
+export default function Sidebar({ onSectionChange, activeSection, userPresenceStatus = 'present' }: SidebarProps) {
   const [expanded, setExpanded] = useState(false);
   
   const toggleSidebar = () => {
     setExpanded(!expanded);
+  };
+  
+  // Determine status color
+  const getStatusColor = () => {
+    switch (userPresenceStatus) {
+      case 'present':
+        return 'bg-green-500';
+      case 'away':
+        return 'bg-yellow-500';
+      case 'fake-presence':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+  
+  // Determine status text
+  const getStatusText = () => {
+    switch (userPresenceStatus) {
+      case 'present':
+        return 'Available';
+      case 'away':
+        return 'Away';
+      case 'fake-presence':
+        return 'Fake Presence';
+      default:
+        return 'Unknown';
+    }
   };
   
   return (
@@ -27,6 +57,27 @@ export default function Sidebar({ onSectionChange, activeSection }: SidebarProps
         >
           <i className={`fas ${expanded ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
         </button>
+      </div>
+      
+      {/* User presence indicator */}
+      <div className="flex items-center px-4 py-2 border-b border-violet-700">
+        {expanded ? (
+          <div className="flex items-center w-full">
+            <div className={`w-3 h-3 rounded-full ${getStatusColor()} mr-2`}></div>
+            <span className="text-sm">{getStatusText()}</span>
+          </div>
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={`w-3 h-3 rounded-full ${getStatusColor()} mx-auto`}></div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{getStatusText()}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
       
       <nav className="flex-1">
@@ -142,23 +193,6 @@ export default function Sidebar({ onSectionChange, activeSection }: SidebarProps
               </Tooltip>
             </li>
           </ul>
-          
-          <div className="mt-auto p-4 border-t border-violet-700">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="flex items-center justify-center w-full p-2 rounded-lg text-violet-200 hover:bg-violet-800/50 transition-all"
-                  aria-label="Profile"
-                >
-                  <i className="fas fa-user-circle text-lg"></i>
-                  {expanded && <span className="ml-3">Profile</span>}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>View Profile</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
         </TooltipProvider>
       </nav>
     </aside>
