@@ -536,9 +536,10 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
               </div>
             </TabsContent>
           </Tabs>
+        </div>
           
-          {/* Status section */}
-          <div className="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700">
+        {/* Status section */}
+        <div className="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700">
             <div className="flex items-center">
               <div className={`w-3 h-3 rounded-full ${getStatusColor()} mr-2`}></div>
               <span className="font-medium">Status: {getStatusText()}</span>
