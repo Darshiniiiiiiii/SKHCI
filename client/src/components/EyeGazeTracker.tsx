@@ -142,9 +142,26 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
     setHeadY(prev => constrainChange(prev, 0.5, -10, 10));
     setHeadZ(prev => constrainChange(prev, 0.2, 45, 55));
     
-    // Simulate eye movements (can be more rapid)
-    setGazePositionX(prev => constrainChange(prev, 5, 0, canvas.width));
-    setGazePositionY(prev => constrainChange(prev, 5, 0, canvas.height));
+    // Simulate more natural, smoother eye movements
+    // Create subtle saccades (quick eye movements) and smoother pursuit movements
+    const now = Date.now();
+    const saccadeFactor = Math.sin(now / 500) * Math.cos(now / 733);
+    const pursuitFactor = Math.sin(now / 2000) * Math.cos(now / 1733);
+    
+    // Combine different movement patterns for more realistic eye tracking
+    setGazePositionX(prev => {
+      const saccade = Math.random() > 0.95 ? Math.random() * 40 - 20 : 0; // Occasional quick jump
+      const pursuit = pursuitFactor * 30;
+      const micro = saccadeFactor * 10;
+      return Math.max(0, Math.min(canvas.width, prev + saccade + pursuit + micro));
+    });
+    
+    setGazePositionY(prev => {
+      const saccade = Math.random() > 0.95 ? Math.random() * 30 - 15 : 0;
+      const pursuit = pursuitFactor * 25;
+      const micro = saccadeFactor * 8;
+      return Math.max(0, Math.min(canvas.height, prev + saccade + pursuit + micro));
+    });
     
     // Simulate blink rate (normal is 15-20 blinks per minute)
     if (Math.random() > 0.99) { // Occasionally update blink rate
@@ -493,15 +510,40 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
               />
               
-              {/* Infrared marker indicators */}
-              <div className="absolute top-4 left-4 w-4 h-4 rounded-full bg-red-500 opacity-50 animate-pulse"></div>
-              <div className="absolute top-4 right-4 w-4 h-4 rounded-full bg-red-500 opacity-50 animate-pulse"></div>
-              <div className="absolute bottom-4 left-4 w-4 h-4 rounded-full bg-red-500 opacity-50 animate-pulse"></div>
-              <div className="absolute bottom-4 right-4 w-4 h-4 rounded-full bg-red-500 opacity-50 animate-pulse"></div>
-              
-              {/* Pupil tracking illuminators */}
-              <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-purple-500 opacity-30 animate-pulse"></div>
-              <div className="absolute top-1/2 right-1/4 transform translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-purple-500 opacity-30 animate-pulse"></div>
+              {/* Dynamic pupil tracking markers (moves with eye gaze) */}
+              {isTracking && trackerStatus === 'active' && (
+                <>
+                  {/* Left eye tracking marker */}
+                  <div 
+                    className="absolute w-3 h-3 rounded-full bg-red-500 opacity-70 z-10"
+                    style={{
+                      left: `${(gazePositionX / 640) * 30 + 25}%`, 
+                      top: `${(gazePositionY / 480) * 30 + 35}%`,
+                      transition: 'all 0.05s ease'
+                    }}
+                  />
+                  
+                  {/* Right eye tracking marker */}
+                  <div 
+                    className="absolute w-3 h-3 rounded-full bg-red-500 opacity-70 z-10"
+                    style={{
+                      left: `${(gazePositionX / 640) * 30 + 65}%`, 
+                      top: `${(gazePositionY / 480) * 30 + 35}%`,
+                      transition: 'all 0.05s ease'
+                    }}
+                  />
+                  
+                  {/* Focusing circle */}
+                  <div 
+                    className="absolute w-6 h-6 rounded-full border-2 border-green-500 z-10"
+                    style={{
+                      left: `${(gazePositionX / 640) * 80 + 10}%`, 
+                      top: `${(gazePositionY / 480) * 80 + 10}%`,
+                      transition: 'all 0.1s ease'
+                    }}
+                  />
+                </>
+              )}
               
               {trackerStatus === 'calibrating' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -513,15 +555,7 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
                 </div>
               )}
               
-              {/* Eye detection markers overlay when active */}
-              {trackerStatus === 'active' && (
-                <>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-[100px] -translate-y-1/2 w-16 h-16 border-2 border-green-400 rounded-full opacity-50"></div>
-                  <div className="absolute top-1/2 left-1/2 transform translate-x-[20px] -translate-y-1/2 w-16 h-16 border-2 border-green-400 rounded-full opacity-50"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-[100px] -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
-                  <div className="absolute top-1/2 left-1/2 transform translate-x-[20px] -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
-                </>
-              )}
+              {/* No fixed eye detection markers - using dynamic ones instead */}
             </div>
             
             {/* Advanced technical description */}
