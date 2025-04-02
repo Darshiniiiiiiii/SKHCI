@@ -11,11 +11,11 @@ interface SidebarProps {
 
 export default function Sidebar({ onSectionChange, activeSection, userPresenceStatus = 'present' }: SidebarProps) {
   const [expanded, setExpanded] = useState(false);
-  
+
   const toggleSidebar = () => {
     setExpanded(!expanded);
   };
-  
+
   // Determine status color
   const getStatusColor = () => {
     switch (userPresenceStatus) {
@@ -29,7 +29,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
         return 'bg-gray-500';
     }
   };
-  
+
   // Determine status text
   const getStatusText = () => {
     switch (userPresenceStatus) {
@@ -43,7 +43,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
         return 'Unknown';
     }
   };
-  
+
   return (
     <aside 
       className={`${expanded ? 'w-64' : 'w-16'} bg-violet-900 text-white transition-all duration-300 flex flex-col shadow-lg`}
@@ -58,7 +58,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
           <i className={`fas ${expanded ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
         </button>
       </div>
-      
+
       {/* User presence indicator */}
       <div className="flex items-center px-4 py-2 border-b border-violet-700">
         {expanded ? (
@@ -79,7 +79,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
           </TooltipProvider>
         )}
       </div>
-      
+
       <nav className="flex-1">
         <TooltipProvider>
           <ul className="py-4 space-y-3">
@@ -87,7 +87,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className={`flex items-center justify-center w-full p-3 rounded-lg transition-all ${
+                    className={`flex items-center justify-center w-full p-3 rounded-lg transition-all relative ${
                       activeSection === 'chat-section' 
                         ? 'bg-violet-800 text-white' 
                         : 'text-violet-200 hover:bg-violet-800/50'
@@ -95,7 +95,10 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                     onClick={() => onSectionChange('chat-section')}
                     aria-label="Chats"
                   >
-                    <i className="fas fa-comments text-lg"></i>
+                    <div className="relative">
+                      <i className="fas fa-comments text-lg"></i>
+                      <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs">3</span>
+                    </div>
                     {expanded && <span className="ml-3">Chats</span>}
                   </button>
                 </TooltipTrigger>
@@ -104,7 +107,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                 </TooltipContent>
               </Tooltip>
             </li>
-            
+
             <li className="px-4">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -126,7 +129,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                 </TooltipContent>
               </Tooltip>
             </li>
-            
+
             <li className="px-4">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -148,7 +151,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                 </TooltipContent>
               </Tooltip>
             </li>
-            
+
             <li className="px-4">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -170,7 +173,7 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                 </TooltipContent>
               </Tooltip>
             </li>
-            
+
             <li className="px-4">
               <Tooltip>
                 <TooltipTrigger asChild>

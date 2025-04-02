@@ -109,6 +109,7 @@ export default function Dashboard() {
           isActive={activeSection === 'settings-section'} 
           onStatusChange={handleUserPresenceChange}
         />
+        <AiAssistant />
       </main>
       
       <Toaster />

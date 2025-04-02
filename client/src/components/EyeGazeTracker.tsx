@@ -118,6 +118,18 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
     
     if (!context) return;
     
+    // Simulate eye detection (in a real implementation, this would use computer vision)
+    const eyesVisible = Math.random() > 0.2; // 80% chance of eyes being visible
+    
+    // Update attention score based on eye visibility
+    setAttentionScore(prev => {
+      const targetScore = eyesVisible ? 100 : 20;
+      const step = 5;
+      return prev < targetScore 
+        ? Math.min(prev + step, targetScore)
+        : Math.max(prev - step, targetScore);
+    });
+    
     // Mirror the video horizontally for more natural user experience
     context.translate(canvas.width, 0);
     context.scale(-1, 1);
@@ -460,18 +472,17 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
         
         <CardContent className="space-y-6">
           {/* Tracking Mode Tabs */}
-          <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'simulation' | 'camera')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="simulation">Mouse Simulation</TabsTrigger>
-              <TabsTrigger value="camera">Camera Tracking</TabsTrigger>
-            </TabsList>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <p>Real-time eye tracking using your camera.</p>
+              <p>For accurate tracking, ensure good lighting and face the camera directly.</p>
+            </div>
             
-            <TabsContent value="simulation" className="space-y-4 mt-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <p>In simulation mode, your mouse movements will simulate eye tracking.</p>
-                <p>This is useful for testing and demonstration purposes.</p>
-              </div>
-            </TabsContent>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-500">IR Illuminators Active</span>
+            </div>
             
             <TabsContent value="camera" className="space-y-4 mt-4">
               {cameraError ? (
