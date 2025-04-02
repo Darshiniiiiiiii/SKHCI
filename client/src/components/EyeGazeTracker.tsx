@@ -510,40 +510,7 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
               />
               
-              {/* Dynamic pupil tracking markers (moves with eye gaze) */}
-              {isTracking && trackerStatus === 'active' && (
-                <>
-                  {/* Left eye tracking marker */}
-                  <div 
-                    className="absolute w-3 h-3 rounded-full bg-red-500 opacity-70 z-10"
-                    style={{
-                      left: `${(gazePositionX / 640) * 30 + 25}%`, 
-                      top: `${(gazePositionY / 480) * 30 + 35}%`,
-                      transition: 'all 0.05s ease'
-                    }}
-                  />
-                  
-                  {/* Right eye tracking marker */}
-                  <div 
-                    className="absolute w-3 h-3 rounded-full bg-red-500 opacity-70 z-10"
-                    style={{
-                      left: `${(gazePositionX / 640) * 30 + 65}%`, 
-                      top: `${(gazePositionY / 480) * 30 + 35}%`,
-                      transition: 'all 0.05s ease'
-                    }}
-                  />
-                  
-                  {/* Focusing circle */}
-                  <div 
-                    className="absolute w-6 h-6 rounded-full border-2 border-green-500 z-10"
-                    style={{
-                      left: `${(gazePositionX / 640) * 80 + 10}%`, 
-                      top: `${(gazePositionY / 480) * 80 + 10}%`,
-                      transition: 'all 0.1s ease'
-                    }}
-                  />
-                </>
-              )}
+              {/* No eye tracking markers - we removed them as requested */}
               
               {trackerStatus === 'calibrating' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
