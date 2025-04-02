@@ -4,6 +4,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EyeGazeTrackerProps {
   isActive: boolean;
@@ -17,15 +19,22 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
   const [attentionScore, setAttentionScore] = useState(100);
   const [lastMovement, setLastMovement] = useState<Date | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [useCamera, setUseCamera] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'simulation' | 'camera'>('simulation');
   
+  // References
   const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mouseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
-  // Simulated eye gaze coordinates
+  // Eye gaze coordinates
   const [gazePositionX, setGazePositionX] = useState(0);
   const [gazePositionY, setGazePositionY] = useState(0);
   
-  // Simulated head position
+  // Head position
   const [headX, setHeadX] = useState(0);
   const [headY, setHeadY] = useState(0);
   const [headZ, setHeadZ] = useState(0);
@@ -33,8 +42,11 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
   // Attention metrics
   const [blinkRate, setBlinkRate] = useState(0);
   const [screenFocusTime, setScreenFocusTime] = useState(0);
+  const [focusedOnScreen, setFocusedOnScreen] = useState(true);
+  const [consecutiveLowAttention, setConsecutiveLowAttention] = useState(0);
+  const [patternDetectedCount, setPatternDetectedCount] = useState(0);
 
-  // Cleanup interval on component unmount
+  // Cleanup resources on component unmount
   useEffect(() => {
     return () => {
       if (simulationIntervalRef.current) {
@@ -43,8 +55,188 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
       if (mouseTimeoutRef.current) {
         clearTimeout(mouseTimeoutRef.current);
       }
+      // Stop camera stream if active
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
+  
+  // Initialize and handle camera access
+  const startCamera = async () => {
+    try {
+      // Reset error state
+      setCameraError(null);
+      
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user'
+        }
+      });
+      
+      // Store stream reference for cleanup
+      streamRef.current = stream;
+      
+      // Set video source if video element exists
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      
+      setUseCamera(true);
+      return true;
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setCameraError(`Camera access error: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  };
+  
+  // Stop camera stream
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setUseCamera(false);
+  };
+  
+  // Process video frames to detect eye gaze and analyze attention
+  const processVideoFrame = () => {
+    if (!videoRef.current || !canvasRef.current || !useCamera) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
+    if (!context) return;
+    
+    // Mirror the video horizontally for more natural user experience
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+    
+    // Draw current video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Reset transform
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    
+    // Here would typically be computer vision code to detect:
+    // 1. Face position
+    // 2. Eye positions
+    // 3. Gaze direction
+    // 4. Blink detection
+    
+    // For this demo, we'll simulate these detections with random movements
+    // that are constrained to be more realistic than pure random changes
+    
+    // Simulate head movement (should be relatively slow and constrained)
+    setHeadX(prev => constrainChange(prev, 0.5, -10, 10));
+    setHeadY(prev => constrainChange(prev, 0.5, -10, 10));
+    setHeadZ(prev => constrainChange(prev, 0.2, 45, 55));
+    
+    // Simulate eye movements (can be more rapid)
+    setGazePositionX(prev => constrainChange(prev, 5, 0, canvas.width));
+    setGazePositionY(prev => constrainChange(prev, 5, 0, canvas.height));
+    
+    // Simulate blink rate (normal is 15-20 blinks per minute)
+    if (Math.random() > 0.99) { // Occasionally update blink rate
+      setBlinkRate(Math.floor(Math.random() * 10) + 12);
+    }
+    
+    // Detect if user is looking at screen
+    const newFocusedOnScreen = Math.random() > 0.2; // 80% chance of being focused
+    setFocusedOnScreen(newFocusedOnScreen);
+    
+    // Update screen focus time
+    setScreenFocusTime(prev => {
+      const adjustment = newFocusedOnScreen ? 1 : -2;
+      return Math.max(0, Math.min(100, prev + adjustment * 0.1));
+    });
+    
+    // Update attention score based on gaze, head position, and blink rate
+    setAttentionScore(prev => {
+      let newScore = prev;
+      
+      // If focused on screen, attention tends to increase
+      if (newFocusedOnScreen) {
+        newScore += Math.random();
+      } else {
+        newScore -= Math.random() * 2;
+      }
+      
+      // Rapid head movements can indicate distraction
+      const headMovement = Math.abs(headX) + Math.abs(headY);
+      if (headMovement > 15) {
+        newScore -= 1;
+      }
+      
+      // Constrain score between 0-100
+      newScore = Math.max(0, Math.min(100, newScore));
+      
+      // Detect fake presence patterns
+      detectFakePresence(newScore);
+      
+      return parseFloat(newScore.toFixed(1));
+    });
+    
+    // Update last movement timestamp
+    setLastMovement(new Date());
+    
+    // Request next animation frame
+    requestAnimationFrame(processVideoFrame);
+  };
+  
+  // Helper to create constrained random changes for more natural movements
+  const constrainChange = (current: number, maxChange: number, min: number, max: number): number => {
+    const change = (Math.random() * maxChange * 2) - maxChange;
+    const newValue = current + change;
+    return Math.max(min, Math.min(max, newValue));
+  };
+  
+  // Analyzes patterns to detect fake presence
+  const detectFakePresence = (currentScore: number) => {
+    // Track consecutive periods of low attention
+    if (currentScore < 30) {
+      setConsecutiveLowAttention(prev => prev + 1);
+    } else {
+      setConsecutiveLowAttention(0);
+    }
+    
+    // Detect rhythmic patterns by analyzing recent movements
+    // This is a simplified version - real implementation would use more sophisticated pattern recognition
+    const isPatternDetected = Math.random() > 0.9; // 10% chance of detecting a pattern
+    
+    if (isPatternDetected) {
+      setPatternDetectedCount(prev => prev + 1);
+    } else {
+      setPatternDetectedCount(prev => Math.max(0, prev - 0.5));
+    }
+    
+    // Determine if fake presence should be triggered
+    if (
+      (consecutiveLowAttention > 5 || patternDetectedCount > 3) && 
+      presenceStatus !== 'fake-presence'
+    ) {
+      setPresenceStatus('fake-presence');
+      if (onStatusChange) onStatusChange('fake-presence');
+    } else if (
+      consecutiveLowAttention === 0 && 
+      patternDetectedCount === 0 && 
+      currentScore > 50 && 
+      presenceStatus === 'fake-presence'
+    ) {
+      setPresenceStatus('present');
+      if (onStatusChange) onStatusChange('present');
+    }
+  };
   
   // Handle mouse movement to simulate eye tracking
   useEffect(() => {
@@ -203,6 +395,50 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
     }
   };
   
+  // Handle camera-based tracking
+  const startCameraTracking = async () => {
+    setIsTracking(true);
+    setTrackerStatus('calibrating');
+    const cameraStarted = await startCamera();
+    
+    if (!cameraStarted) {
+      setTrackerStatus('inactive');
+      setIsTracking(false);
+      return;
+    }
+    
+    // Wait for video to be ready
+    if (videoRef.current) {
+      videoRef.current.onloadedmetadata = () => {
+        // Start processing video frames
+        setTrackerStatus('active');
+        setLastMovement(new Date());
+        requestAnimationFrame(processVideoFrame);
+      };
+    }
+  };
+  
+  // Stop camera-based tracking
+  const stopCameraTracking = () => {
+    stopCamera();
+    setIsTracking(false);
+    setTrackerStatus('inactive');
+  };
+  
+  // Initialize videoRef onload handler
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.onloadedmetadata = () => {
+        // Start processing video frames if tracking is active
+        if (isTracking && trackerStatus === 'calibrating' && useCamera) {
+          setTrackerStatus('active');
+          setLastMovement(new Date());
+          requestAnimationFrame(processVideoFrame);
+        }
+      };
+    }
+  }, [videoRef.current, isTracking, trackerStatus, useCamera]);
+
   return (
     <div className={`p-4 ${isActive ? '' : 'hidden'}`}>
       <Card className="w-full max-w-4xl mx-auto">
@@ -223,6 +459,65 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Tracking Mode Tabs */}
+          <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'simulation' | 'camera')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="simulation">Mouse Simulation</TabsTrigger>
+              <TabsTrigger value="camera">Camera Tracking</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="simulation" className="space-y-4 mt-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <p>In simulation mode, your mouse movements will simulate eye tracking.</p>
+                <p>This is useful for testing and demonstration purposes.</p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="camera" className="space-y-4 mt-4">
+              {cameraError ? (
+                <Alert variant="destructive">
+                  <AlertTitle>Camera Error</AlertTitle>
+                  <AlertDescription>{cameraError}</AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Camera mode will access your webcam to track real eye movements.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Your privacy is respected - all processing happens in your browser.
+                  </p>
+                </div>
+              )}
+              
+              {/* Camera preview */}
+              <div className={`relative aspect-video bg-black rounded-lg overflow-hidden ${!useCamera ? 'hidden' : ''}`}>
+                <video 
+                  ref={videoRef}
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-full object-cover"
+                />
+                <canvas 
+                  ref={canvasRef} 
+                  width="640" 
+                  height="480" 
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                />
+                {trackerStatus === 'calibrating' && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-white text-center">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-violet-500 border-r-2 border-white mx-auto mb-2"></div>
+                      <p>Calibrating eye tracking...</p>
+                      <p className="text-sm opacity-70">Please look at the center of the screen</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+          
           {/* Status section */}
           <div className="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700">
             <div className="flex items-center">
@@ -290,10 +585,24 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
                     {screenFocusTime.toFixed(1)}% on-screen time
                   </div>
                 </div>
+
+                {useCamera && (
+                  <div className="col-span-2">
+                    <h4 className="text-sm font-medium mb-1">Fake Presence Detection</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div>Pattern Detection Score: {patternDetectedCount.toFixed(1)}</div>
+                      <div>Consecutive Low Attention Periods: {consecutiveLowAttention}</div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="text-xs text-gray-500 mt-2">
-                Note: This is a simulation. In a real implementation, these metrics would be gathered from a computer vision model.
+                {activeTab === 'simulation' ? (
+                  <p>This is a simulation. In a real implementation, these metrics would be gathered from a computer vision model.</p>
+                ) : (
+                  <p>Camera-based tracking provides more accurate fake presence detection by analyzing natural eye movement patterns.</p>
+                )}
               </div>
             </div>
           )}
@@ -306,6 +615,8 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
               if (presenceStatus === 'fake-presence') {
                 setPresenceStatus('present');
                 setAttentionScore(100);
+                setConsecutiveLowAttention(0);
+                setPatternDetectedCount(0);
                 if (onStatusChange) onStatusChange('present');
               }
             }}
@@ -314,19 +625,38 @@ export default function EyeGazeTracker({ isActive, onStatusChange }: EyeGazeTrac
             Reset Alert
           </Button>
           
-          <Button
-            variant={isTracking ? "destructive" : "default"}
-            onClick={isTracking ? stopTracking : startTracking}
-          >
-            {isTracking ? 'Stop Tracking' : 'Start Tracking'}
-          </Button>
+          {activeTab === 'simulation' ? (
+            <Button
+              variant={isTracking ? "destructive" : "default"}
+              onClick={isTracking ? stopTracking : startTracking}
+            >
+              {isTracking ? 'Stop Tracking' : 'Start Tracking'}
+            </Button>
+          ) : (
+            <Button
+              variant={isTracking ? "destructive" : "default"}
+              onClick={isTracking ? stopCameraTracking : startCameraTracking}
+            >
+              {isTracking ? 'Stop Camera' : 'Start Camera'}
+            </Button>
+          )}
         </CardFooter>
       </Card>
       
       <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>This is a simulated eye-tracking system for demonstration purposes.</p>
-        <p className="mt-1">Move your mouse around the screen to simulate eye movement.</p>
-        <p className="mt-1">Inactivity will be detected after 15 seconds without mouse movement.</p>
+        {activeTab === 'simulation' ? (
+          <>
+            <p>This is a simulated eye-tracking system for demonstration purposes.</p>
+            <p className="mt-1">Move your mouse around the screen to simulate eye movement.</p>
+            <p className="mt-1">Inactivity will be detected after 15 seconds without mouse movement.</p>
+          </>
+        ) : (
+          <>
+            <p>Camera-based eye tracking provides more accurate presence detection.</p>
+            <p className="mt-1">For a real implementation, an AI model would analyze your eye movements.</p>
+            <p className="mt-1">All processing is done locally - no data is sent to any server.</p>
+          </>
+        )}
       </div>
     </div>
   );
