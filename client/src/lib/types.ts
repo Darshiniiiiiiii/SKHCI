@@ -51,6 +51,6 @@ export interface Notification {
 
 export type ActiveUser = 'user1' | 'user2';
 
-export type ActiveSection = 'chat-section' | 'dashboard-section' | 'calendar-section' | 'settings-section';
+export type ActiveSection = 'chat-section' | 'dashboard-section' | 'calendar-section' | 'settings-section' | 'statistical-dashboard-section';
 
 export type ChatView = 'direct' | 'group' | 'all';

@@ -1,0 +1,122 @@
+/* Accessibility and Dark Mode Styling */
+
+:root {
+  --font-size-adjustment: 0px;
+  --dark-mode-bg: #1f2937;
+  --dark-mode-bg-lighter: #374151;
+  --dark-mode-text: #ffffff;
+  --dark-mode-text-muted: #d1d5db;
+  --dark-mode-border: #4b5563;
+  --focus-ring-color: #3b82f6;
+}
+
+/* Font size adjustments */
+body {
+  /* Base font size can be adjusted globally */
+  font-size: calc(14px + var(--font-size-adjustment));
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: calc(var(--heading-size, 1em) + var(--font-size-adjustment));
+}
+
+.text-sm {
+  font-size: calc(0.875rem + var(--font-size-adjustment));
+}
+
+.text-xs {
+  font-size: calc(0.75rem + var(--font-size-adjustment));
+}
+
+.text-lg {
+  font-size: calc(1.125rem + var(--font-size-adjustment));
+}
+
+.text-xl {
+  font-size: calc(1.25rem + var(--font-size-adjustment));
+}
+
+/* Dark mode styling */
+.dark-mode {
+  background-color: var(--dark-mode-bg);
+  color: var(--dark-mode-text);
+}
+
+.dark-mode .bg-white {
+  background-color: var(--dark-mode-bg-lighter);
+}
+
+.dark-mode .text-gray-500 {
+  color: var(--dark-mode-text-muted);
+}
+
+.dark-mode .border-gray-200 {
+  border-color: var(--dark-mode-border);
+}
+
+.dark-mode .shadow-md,
+.dark-mode .shadow-sm,
+.dark-mode .shadow {
+  --tw-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* High contrast outlines for keyboard focus */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+/* Improved keyboard navigation indicators */
+.keyboard-focus-indicator:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip navigation link for keyboard users */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  background-color: var(--dark-mode-text);
+  color: var(--dark-mode-bg);
+  font-weight: bold;
+  z-index: 9999;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

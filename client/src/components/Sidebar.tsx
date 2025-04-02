@@ -25,6 +25,13 @@ export default function Sidebar({ onSectionChange, activeSection }: SidebarProps
               <i className="fas fa-chart-line mr-2"></i> Dashboards
             </li>
             <li 
+              className={`p-2 hover:bg-white/10 rounded cursor-pointer transition ${activeSection === 'statistical-dashboard-section' ? 'bg-white/20' : ''}`}
+              onClick={() => onSectionChange('statistical-dashboard-section')}
+              aria-label="Statistical Dashboard"
+            >
+              <i className="fas fa-chart-bar mr-2"></i> Stats Dashboard
+            </li>
+            <li 
               className={`p-2 hover:bg-white/10 rounded cursor-pointer transition ${activeSection === 'calendar-section' ? 'bg-white/20' : ''}`}
               onClick={() => onSectionChange('calendar-section')}
             >
