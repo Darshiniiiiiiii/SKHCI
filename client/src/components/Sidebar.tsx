@@ -310,6 +310,50 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                 <TooltipTrigger asChild>
                   <button
                     className={`flex items-center justify-center w-full p-3 rounded-lg transition-all ${
+                      activeSection === 'eye-gaze-section' 
+                        ? 'bg-violet-800 text-white' 
+                        : 'text-violet-200 hover:bg-violet-800/50'
+                    }`}
+                    onClick={() => onSectionChange('eye-gaze-section')}
+                    aria-label="Eye Gazing"
+                  >
+                    <i className="fas fa-eye text-lg"></i>
+                    {expanded && <span className="ml-3">Eye Gazing</span>}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Eye Gazing Tracker</p>
+                </TooltipContent>
+              </Tooltip>
+            </li>
+            
+            <li className="px-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`flex items-center justify-center w-full p-3 rounded-lg transition-all ${
+                      activeSection === 'account-section' 
+                        ? 'bg-violet-800 text-white' 
+                        : 'text-violet-200 hover:bg-violet-800/50'
+                    }`}
+                    onClick={() => onSectionChange('account-section')}
+                    aria-label="Account"
+                  >
+                    <i className="fas fa-user-circle text-lg"></i>
+                    {expanded && <span className="ml-3">Account</span>}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Account Settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </li>
+            
+            <li className="px-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`flex items-center justify-center w-full p-3 rounded-lg transition-all ${
                       activeSection === 'settings-section' 
                         ? 'bg-violet-800 text-white' 
                         : 'text-violet-200 hover:bg-violet-800/50'

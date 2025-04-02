@@ -6,6 +6,8 @@ import CalendarSection from '@/components/CalendarSection';
 import SettingsSection from '@/components/SettingsSection';
 import StatisticalDashboardSection from '@/components/StatisticalDashboardSection';
 import EyeGazeTracker from '@/components/EyeGazeTracker';
+import EyeGazeSection from '@/components/EyeGazeSection';
+import AccountSection from '@/components/AccountSection';
 import { ActiveSection } from '@/lib/types';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
@@ -105,10 +107,10 @@ export default function Dashboard() {
         <StatisticalDashboardSection isActive={activeSection === 'statistical-dashboard-section'} />
         <CalendarSection isActive={activeSection === 'calendar-section'} />
         <SettingsSection isActive={activeSection === 'settings-section'} />
-        <EyeGazeTracker 
-          isActive={activeSection === 'settings-section'} 
-          onStatusChange={handleUserPresenceChange}
+        <EyeGazeSection 
+          isActive={activeSection === 'eye-gaze-section'} 
         />
+        <AccountSection isActive={activeSection === 'account-section'} />
       </main>
       
       <Toaster />
