@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { ActiveSection } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { ActiveSection, Notification } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
+import { defaultNotifications, STORAGE_KEYS } from '@/lib/sampleData';
 
 interface SidebarProps {
   onSectionChange: (section: ActiveSection) => void;
@@ -11,6 +12,46 @@ interface SidebarProps {
 
 export default function Sidebar({ onSectionChange, activeSection, userPresenceStatus = 'present' }: SidebarProps) {
   const [expanded, setExpanded] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState({
+    mention: 0,
+    meeting: 0,
+    deadline: 0,
+    update: 0
+  });
+  
+  // Load notifications
+  useEffect(() => {
+    const notificationsString = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
+    let loadedNotifications: Notification[];
+    
+    if (notificationsString) {
+      loadedNotifications = JSON.parse(notificationsString);
+    } else {
+      loadedNotifications = defaultNotifications;
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(defaultNotifications));
+    }
+    
+    setNotifications(loadedNotifications);
+    
+    // Count unread notifications by type
+    const counts = {
+      mention: 0,
+      meeting: 0,
+      deadline: 0,
+      update: 0
+    };
+    
+    loadedNotifications.forEach(notification => {
+      if (!notification.read) {
+        counts[notification.type]++;
+      }
+    });
+    
+    setUnreadCounts(counts);
+  }, []);
+  
+  const totalUnread = unreadCounts.mention + unreadCounts.meeting + unreadCounts.deadline + unreadCounts.update;
   
   const toggleSidebar = () => {
     setExpanded(!expanded);
@@ -95,12 +136,42 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                     onClick={() => onSectionChange('chat-section')}
                     aria-label="Chats"
                   >
-                    <i className="fas fa-comments text-lg"></i>
-                    {expanded && <span className="ml-3">Chats</span>}
+                    <div className="relative">
+                      <i className="fas fa-comments text-lg"></i>
+                      {unreadCounts.mention > 0 && (
+                        <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] font-bold">
+                          {unreadCounts.mention}
+                        </div>
+                      )}
+                    </div>
+                    {expanded && (
+                      <div className="ml-3 flex items-center justify-between flex-1">
+                        <span>Chats</span>
+                        {totalUnread > 0 && (
+                          <div className="flex space-x-1">
+                            {unreadCounts.mention > 0 && (
+                              <Badge variant="destructive" className="h-5 bg-rose-500 text-[10px] px-1.5">
+                                <i className="fas fa-at mr-1"></i> {unreadCounts.mention}
+                              </Badge>
+                            )}
+                            {unreadCounts.meeting > 0 && (
+                              <Badge variant="destructive" className="h-5 bg-blue-500 text-[10px] px-1.5">
+                                <i className="fas fa-calendar mr-1"></i> {unreadCounts.meeting}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Chats</p>
+                  <div className="flex flex-col">
+                    <p>Chats</p>
+                    {unreadCounts.mention > 0 && (
+                      <p className="text-xs text-rose-500">{unreadCounts.mention} new mentions</p>
+                    )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </li>
@@ -117,12 +188,33 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                     onClick={() => onSectionChange('dashboard-section')}
                     aria-label="Dashboards"
                   >
-                    <i className="fas fa-chart-line text-lg"></i>
-                    {expanded && <span className="ml-3">Dashboards</span>}
+                    <div className="relative">
+                      <i className="fas fa-chart-line text-lg"></i>
+                      {unreadCounts.deadline > 0 && (
+                        <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[10px] font-bold">
+                          {unreadCounts.deadline}
+                        </div>
+                      )}
+                    </div>
+                    {expanded && (
+                      <div className="ml-3 flex items-center justify-between flex-1">
+                        <span>Dashboards</span>
+                        {unreadCounts.deadline > 0 && (
+                          <Badge variant="destructive" className="h-5 bg-amber-500 text-[10px] px-1.5">
+                            <i className="fas fa-clock mr-1"></i> {unreadCounts.deadline}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Dashboards</p>
+                  <div className="flex flex-col">
+                    <p>Dashboards</p>
+                    {unreadCounts.deadline > 0 && (
+                      <p className="text-xs text-amber-500">{unreadCounts.deadline} approaching deadlines</p>
+                    )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </li>
@@ -139,12 +231,33 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                     onClick={() => onSectionChange('statistical-dashboard-section')}
                     aria-label="Statistical Dashboard"
                   >
-                    <i className="fas fa-chart-bar text-lg"></i>
-                    {expanded && <span className="ml-3">Stats Dashboard</span>}
+                    <div className="relative">
+                      <i className="fas fa-chart-bar text-lg"></i>
+                      {unreadCounts.update > 0 && (
+                        <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-[10px] font-bold">
+                          {unreadCounts.update}
+                        </div>
+                      )}
+                    </div>
+                    {expanded && (
+                      <div className="ml-3 flex items-center justify-between flex-1">
+                        <span>Stats Dashboard</span>
+                        {unreadCounts.update > 0 && (
+                          <Badge variant="destructive" className="h-5 bg-green-500 text-[10px] px-1.5">
+                            <i className="fas fa-sync-alt mr-1"></i> {unreadCounts.update}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Statistical Dashboard</p>
+                  <div className="flex flex-col">
+                    <p>Statistical Dashboard</p>
+                    {unreadCounts.update > 0 && (
+                      <p className="text-xs text-green-500">{unreadCounts.update} project updates</p>
+                    )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </li>
@@ -161,12 +274,33 @@ export default function Sidebar({ onSectionChange, activeSection, userPresenceSt
                     onClick={() => onSectionChange('calendar-section')}
                     aria-label="Calendar"
                   >
-                    <i className="fas fa-calendar-alt text-lg"></i>
-                    {expanded && <span className="ml-3">Calendar</span>}
+                    <div className="relative">
+                      <i className="fas fa-calendar-alt text-lg"></i>
+                      {unreadCounts.meeting > 0 && (
+                        <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-bold">
+                          {unreadCounts.meeting}
+                        </div>
+                      )}
+                    </div>
+                    {expanded && (
+                      <div className="ml-3 flex items-center justify-between flex-1">
+                        <span>Calendar</span>
+                        {unreadCounts.meeting > 0 && (
+                          <Badge variant="destructive" className="h-5 bg-blue-500 text-[10px] px-1.5">
+                            <i className="fas fa-bell mr-1"></i> {unreadCounts.meeting}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Calendar</p>
+                  <div className="flex flex-col">
+                    <p>Calendar</p>
+                    {unreadCounts.meeting > 0 && (
+                      <p className="text-xs text-blue-500">{unreadCounts.meeting} meeting reminders</p>
+                    )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </li>
