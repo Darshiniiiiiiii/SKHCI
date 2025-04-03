@@ -41,6 +41,10 @@ The Work Management Dashboard was developed as a comprehensive tool designed to 
     - **Pupil Center Corneal Reflection (PCCR):** Detects subtle eye movements.
     - **AI-Powered Blink & Gaze Analysis:** Identifies blink patterns and gaze behaviors.
     - **Fake Presence Detection:** Recognizes patterns indicating fake presence or inattention.
+ 
+    - OUTPUT LINK - https://drive.google.com/drive/folders/1DSvsFfvhPwmgg9nbRxqhsizbOkNi2wCQ?usp=drive_link
+![image](https://github.com/user-attachments/assets/f3651f4b-6fb7-4cd2-822f-313d7631c0a3)
+
 
 ### Contributing
 Contributions were welcome! If anyone had suggestions for improvements or new features, they could fork the repository and submit a pull request. 
